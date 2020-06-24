@@ -21,11 +21,11 @@ This project provides the correlation analysis of thousands of stocks over 20 ye
 ![Demo](https://media.giphy.com/media/S939VwsrwtRbg1eszW/giphy.gif)
 
 # Prerequisites
-1. Apache Spark 2.4.5[https://spark.apache.org/docs/2.4.5/]
-2. Amazon AWS[https://aws.amazon.com/]
-	1. EMR[https://aws.amazon.com/emr/?nc=sn&loc=0&whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc]
-	2. S3[https://aws.amazon.com/s3/]
-	3. RDS[https://aws.amazon.com/rds/]
+1. [Apache Spark 2.4.5](https://spark.apache.org/docs/2.4.5/)
+2. [Amazon AWS](https://aws.amazon.com/)
+	1. [EMR](https://aws.amazon.com/emr/?nc=sn&loc=0&whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc)
+	2. [S3](https://aws.amazon.com/s3/)
+	3. [RDS](https://aws.amazon.com/rds/)
 3. Runing on a Unix or Linux machine
 
 # Instructions
