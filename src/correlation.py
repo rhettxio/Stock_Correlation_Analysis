@@ -15,9 +15,15 @@ import ast
 import time
 import data_etl as dtetl
 
+# GET user defined parameters
 tickers = sts.LIST_STOCKS
 start_date = sts.START_DATE
 end_date = sts.END_DATE
+
+# read table_ticker_dict.txt and get table ticker dictionary
+file = open("table_tickers_dict.txt","r")
+contents = file.read()
+tabtk_dict = ast.literal_eval(contents)
 
 sc = SparkContext()
 spark = SparkSession.builder.appName("ReadfromDB").getOrCreate()
@@ -35,7 +41,6 @@ def read_from_database(spark, url, properties, select_sql):
     df = spark.read.jdbc(url=url, table=select_sql, properties=properties)
     return df
 
-print("Define getselectrt method..............................................")
 def get_dfwindow(df,start_date,end_date):
     # get return of select stocks and time period and drop the entries with null
     # input: df as return dataframe, start_date and end_date are strings to define time window
@@ -45,7 +50,6 @@ def get_dfwindow(df,start_date,end_date):
     dfwindow = dfwindow.orderBy('Datetime',ascending=True)
     return dfwindow
 
-print("Define getcorr method..................................................")
 def get_corr(dfrtselect):
     # get correltion matrix of selected stocks within time window
     # input: dataframe with selected tickers
@@ -64,13 +68,12 @@ def get_corr(dfrtselect):
     return corr_matrix
 
 def conn_db():
-    # create a connection with RDS postgresql for python
-    # return type: database connection object
+    #Returns database connection object
     try:
-        host = "YOUR_HOST_NAME"
+        host = "POSTGRESQLDB_PUBLIC_DNS"
         database = 'DATABASE_NAME'
-        user = "user"
-        password = "password"
+        user = "USER_NAME"
+        password = "USER_PASSWORD"
 
         conn_string = 'postgresql://' + user + ':' + password + '@' + host + ':5432/' + database
 
@@ -80,7 +83,7 @@ def conn_db():
 
     return engine
 
-def get_table_ticker(tickers,tabtk_dict):
+def get_table_ticker(tickers,tabdict):
     # get the tickers (as values) and correspinding tables (as keys)
     # input: tickers as user defined ticker list
     # tabtk_dict as the dictionary with tablenames as keys, ticker symbols as values
@@ -93,53 +96,55 @@ def get_table_ticker(tickers,tabtk_dict):
     tabtk_dic = {}
     for tbnm,tkl in tabdict.items():
         tabtk_dict.update({tbnm:intersection(tickers, tkl)})
+    return tabtk_dict
 
-#tickers = ["\"A\"","\"AAL\"","\"AAP\"","\"AAPL\"","\"ABBV\""]
+if __name__ == "__main__":
+    start_time = time.time()
+    tab_tk_dict = get_table_ticker(tickers,tabtk_dict)
 
-cols = ["\"Datetime\""] + tickers
+    url = "jdbc:postgresql://POSTGRESQLDB_PUBLIC_DNS:5432/DATABASE_NAME"
+    properties = {"user":"USER_NAME", "password":"USER_PASSWORD", "driver":"org.postgresql.Driver"}
+    tablecorr = "TABLE_NAME_CORRELATION"
+    mode = "overwrite"
+    tablert = "TABLE_NAME_RETURN"
 
-def intersection(lst1, lst2):
-    return list(set(lst1) & set(lst2))
+    ct = 0
+    for tbnm,tkl in tab_tk_dict.items():
+        if tkl:
+            ct += 1
+            tklcap = []
+            for tk in tkl:
+                tklcap.append("\"" + tk + "\"")
+            cols = ["\"Datetime\""] + tklcap
+            select_tablert = "(SELECT " + ", ".join(cols) + " FROM " + tbnm + ") select_alias"
+            #Read selected return from Database
+            dftemp = read_from_database(spark, url, properties, select_tablert)
+            if ct > 1:
+                dfrt = dfrt.join(dftemp, on=["Datetime"], how='full')
+            else:
+                dfrt = dftemp
 
-tabtk_dic = {}
-for tbnm,tkl in tabdic.items():
-    tabtk_dic.update({tbnm:intersection(tickers, tkl)})
+    # get return data within a time window
+    dfrtwindow = get_dfwindow(dfrt,start_date,end_date)
+    dfrtwindow.show(n=5)
+    # get correlation matrix
+    corr_matrix = get_corr(dfrtwindow)
+    corr_matrix_array = corr_matrix.collect()[0][0].values
+    matrix0 = np.reshape(corr_matrix_array, (-1, len(tickers)))
 
+    coef_sum = 0
+    n = len(tickers)
+    for idx,coefrow in enumerate(matrix0):
+        print(coefrow[idx+1:])
+        coef_sum += sum(coefrow[idx+1:])
+    coef_avg = coef_sum / (n*(n-1)/2)
 
-url = "jdbc:postgresql://POSTGRESQLDB_PUBLIC_DNS:5432/DATABASE_NAME"
+    engine = conn_db()
+    corrpddf = pd.DataFrame(matrix0)
+    corrpddf.round(3)
+    corrpddf.columns = tickers
+    corrpddf.insert(0,"Symbol",tickers)
+    corrpddf.to_sql('TABLE_NAME_CORRELATION', con=engine, index=False, if_exists='replace')
+    dtetl.write_to_database(dfrtwindow, url, properties, mode, tablert)
 
-tablert = "TABLE_NAME"
-select_tablert = "(SELECT " + ", ".join(cols) + " FROM " + tablert + ") select_alias"
-properties = {"user":"user", "password":"password", "driver":"org.postgresql.Driver"}
-
-tablecorr = "corrmatrix"
-tablert = "stockreturn"
-mode = "overwrite"
-
-dfrt = read_from_database(spark, url, properties, select_tablert)
-dfrt.show(n=10)
-
-# get dataframe of selected tickers within a time window
-dfrtwindow = get_dfwindow(dfrt,start_date,end_date)
-
-# Get correlation matrix
-corr_matrix = getcorr(dfrtwindow)
-corr_matrix_array = corr_matrix.collect()[0][0].values
-matrix0 = np.reshape(corr_matrix_array, (-1, len(tickers)))
-
-coef_sum = 0
-n = len(tickers)
-for idx,coefrow in enumerate(matrix0):
-    print(coefrow[idx+1:])
-    coef_sum += sum(coefrow[idx+1:])
-coef_avg = coef_sum / (n*(n-1)/2)
-
-engine = conn_db()
-corrpddf = pd.DataFrame(matrix0)
-corrpddf.round(3)
-corrpddf.columns = tickers
-corrpddf.insert(0,"Symbol",tickers)
-
-corrpddf.to_sql('corrmatrix', con=engine, index=False, if_exists='replace')
-dtetl.write_to_database(dfrtwindow, url, properties, mode, tablert)
-spark.stop()
+    print(time.time() - start_time)

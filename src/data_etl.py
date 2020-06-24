@@ -138,7 +138,7 @@ def table_ticker_map(tickers,n):
     # list of tablenames for return data
     rttablenames = []
     tabdict = {}
-    
+
     for i,j in enumerate(range(0,len(tickers),n)):
         rttablenames.append('table'+str(i))
         tabdict[rttablenames[i]] = tickers[j:j + n]
@@ -149,45 +149,33 @@ if __name__ == "__main__":
     t0 = time.time()
     spark = SparkSession.builder.appName("Readrawdata").getOrCreate()
 
-    #bucketname = 'nysestockdaily'
-    bucketname = 'sp500daily'
+    bucketname = 'YOUR_s3_BUCKET_NAME'
 
-    print("read data from s3------------------------------------------------------------")
     # read raw data from s3
     spdf = spark.read.option('maxColumns',150000).csv("s3a://" + bucketname,header= True, inferSchema = True)
-    print("read data from s3 done-------------------------------------------------------")
 
-    print("get open close price-------------------------------------------------------")
     # get close and open price
     [alltickers,dfopenclose] = get_openclose(spdf)
-    print("get open close done-------------------------------------------------------")
 
     # define database parameters
-    url = "jdbc:postgresql://mypostgresql.coui47h5pc42.us-east-1.rds.amazonaws.com:5432/stocks"
+    url = "jdbc:postgresql://POSTGRESQLDB_PUBLIC_DNS:5432/DATABASE_NAME"
     mode = "overwrite"
-    properties = {"user":"anqi", "password":"xaq123456", "driver":"org.postgresql.Driver"}
+    properties = {"user":"USER_NAME", "password":"USER_PASSWORD", "driver":"org.postgresql.Driver"}
 
-    print("get tabledict------------------------------------------------------------")
     # set max 500 columns of a table
-    n = 50
+    n = 500
     tabledict = table_ticker_map(alltickers,n)
 
-    print("write table tickers dict------------------------------------------------")
     # save table_ticker_dict to a .txt file
     f = open("table_tickers_dict.txt","w")
     f.write(str(tabledict))
     f.close()
-    print("write table tickers dict done------------------------------------------------")
-
+    # write all tables into database
     for tab,tklst in tabledict.items():
-        print("get return------------------------------------------------------------")
         #get return data
         dfrt = get_return(tklst,dfopenclose)
         dfrt.show()
-        print('Write return to Database.................................................')
         # write return data to database
         write_to_database(dfrt, url, properties, mode, tab)
-        print('Write to database done!')
 
     print(time.time() - t0)
-    print("Program run successfully!")
