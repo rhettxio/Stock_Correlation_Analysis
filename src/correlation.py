@@ -15,7 +15,7 @@ import ast
 import time
 import data_etl as dtetl
 
-# GET user defined parameters
+# get user defined parameters
 tickers = sts.LIST_STOCKS
 start_date = sts.START_DATE
 end_date = sts.END_DATE

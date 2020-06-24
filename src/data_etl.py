@@ -64,7 +64,7 @@ def get_openclose(df):
     # drop row if datetime has na value
     df = df.filter(df.Datetime.isNotNull())
     # for minute data only
-#    df = df.withColumn("Datetime", df.Datetime + F.expr('INTERVAL -4 HOURS'))
+    # df = df.withColumn("Datetime", df.Datetime + F.expr('INTERVAL -4 HOURS'))
     return [tickers,df]
 
 def get_close(tickers,df):
