@@ -16,6 +16,7 @@ This project provides the correlation analysis of thousands of stocks over 20 ye
 
 # Data Pipeline
 ![pipeline](https://github.com/rhettxio/Stock_Correlation_Analysis/blob/master/docs/pipeline.png)
+The whole pipeline can be split into two parts. First part is data pre-processing, the data is read and pre-processed by Spark installed in EMR cluster, after this step the return data of all tickers will be derived and split into multiple tables then load in the RDS Postgresql database. Second part is actived when a user ask for correlation analysis, the Spark set up on the same EMR cluster as the first part, will extract the return data of selected tickers and time window defined by user, and returns a correlation matrix.
 
 # Demo
 ![Demo](https://media.giphy.com/media/S939VwsrwtRbg1eszW/giphy.gif)
