@@ -27,7 +27,7 @@ The whole pipeline can be split into two parts. First part is data pre-processin
 	1. [EMR](https://aws.amazon.com/emr/?nc=sn&loc=0&whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc)
 	2. [S3](https://aws.amazon.com/s3/)
 	3. [RDS](https://aws.amazon.com/rds/)
-3. Runing on a Unix or Linux machine
+3. Runing on the master node of EMR cluster.
 
 # Instructions
 
@@ -45,7 +45,7 @@ The whole pipeline can be split into two parts. First part is data pre-processin
 
 ## Correlation Anlysis
 * Once `run_prep.sh` is done, a `table_tickers_dict.txt` file will be created, and pre-prossed return data is stored in the PostgreSQL database.
-* Customize the ticker symbols and start_date end_date in `settings.py` in [user_input](https://github.com/rhettxio/Stock_Correlation_Analysis/tree/master/user_input) for correlation calculation.
+* Customize the ticker symbols and start_date end_date in `settings.py` in [user_input](https://github.com/rhettxio/Stock_Correlation_Analysis/tree/master/user_input) as the parameters for correlation analysis.
 * `run.sh` will store the results into PostgreSQL database.
 
 ## Display
