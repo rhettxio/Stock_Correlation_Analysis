@@ -36,17 +36,17 @@ This project provides the correlation analysis of thousands of stocks over 20 ye
 3. EMR: Create EMR cluster emr-5.30.1. Software: Hadoop 2.8.5, Hive 2.3.6, Spark 2.4.5, Zeppelin 0.8.2. Hardware: 1 master(m5.xlarge) and 2 workers(m5.xlarge).
 4. PostgreSQL: Create a PostgreSQL database on RDS.
 
-## Data
+## Dataset
 * The dataset is download from Yahoo finance and stored in S3 bucket.
 
-## Pre-processing
+## Pre-processing Data
 * First time running needs to execute `run_prep.sh` in [run folder](https://github.com/rhettxio/Stock_Correlation_Analysis/tree/master/run).
 
-## Correlation
-* Once `run_prep.sh` is done, a `table_tickers_dict.txt` file will be created.
-* Customize the ticker symbols and start_date end_date for correlation calculation.
+## Correlation Anlysis
+* Once `run_prep.sh` is done, a `table_tickers_dict.txt` file will be created, and pre-prossed return data is stored in the PostgreSQL database.
+* Customize the ticker symbols and start_date end_date in `settings.py` in [user_input](https://github.com/rhettxio/Stock_Correlation_Analysis/tree/master/user_input) for correlation calculation.
 * `run.sh` will store the results into PostgreSQL database.
 
 ## Display
 * Connect Tableau with the public DNS of PostgreSQL database.
-* Select Table: "table_rt" and "corrmatrix".
+* Select Table: "table_rt" and "corrmatrix" for display.
