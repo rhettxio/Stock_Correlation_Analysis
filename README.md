@@ -5,7 +5,7 @@
 This is a project during the Insight Data Engineering Program 2020B Session in New York.
 
 # Table of Contents
-1. [Instructions](README.md#Instructions)
+1. [Instructions](README.md#Introduction)
 2. [Data Pipeline](README.md#Data-Pipeline)
 3. [Demo](README.md#Demo)
 4. [Prerequisites](README.md#Prerequisites)
